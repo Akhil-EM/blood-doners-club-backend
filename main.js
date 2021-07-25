@@ -25,5 +25,4 @@ APP.get('/',(req,res)=>{
 
 
 
-
 APP.listen(PORT,()=>console.log(`\napplication is running at ${PORT}`))
