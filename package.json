@@ -1,0 +1,19 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "node js backend ",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Akhil EM",
+  "license": "ISC",
+  "git-repo": "https://github.com/Akhil-EM/blood-doners-club-backend.git",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.3"
+  }
+}
