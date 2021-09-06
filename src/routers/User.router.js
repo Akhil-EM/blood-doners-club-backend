@@ -1,25 +1,44 @@
-require('dotenv').config();
+const express=require('express');
+const router=express.Router();
+const {body} = require('express-validator');
+const {authenticateUser} = require("../middleware/authentication.middleware")
 
-const {body,validationResult} =require('express-validator');
-const BCRYPT=require('bcrypt');
-const JWT=require('jsonwebtoken');
+const userController = require("../controllers/user.controller");
+//validations is performed using express validator
 
-const USER_MODEL=require('../models/User.model');
-const TOKEN_MODEL=require('../models/Token.model');
-const RESPONSE_OBJ=require('../common/ResponseFormat')
+router.post( "/admin",authenticateUser,[body("name", "Enter a valid name").trim().not().isEmpty(),
+                          body("phone","Enter a valid phone").trim().isLength({min:10,max:10}),
+                          body('password',"Password must be at least 6 character long ").trim().isLength({min:6}),
+                          body("areaCommittee").trim().not().isEmpty(),],
+                          userController.register);
+router.post( "/donor",authenticateUser,[body("name", "Enter a valid name").trim().not().isEmpty(),
+                          body("phone","Enter a valid phone").trim().isLength({min:10,max:10}),
+                          body('password',"Password must be at least 6 character long ").trim().isLength({min:6}),
+                          body("locality").trim().not().isEmpty(),],
+                          userController.register);
+//get admin list                    
+router.get('/',authenticateUser,userController.userList);
+
+// remove admin authenticateUser
+router.delete("/:userId",userController.deleteUser);
+    
+
+
+router.post( "/login",[body("phone","Enter a valid phone").trim().isLength({min:10,max:10}),
+                       body('password',"Password must be at least 6 character long").trim().isLength({min:6})],
+                       userController.login);
+
+router.delete('/logout',userController.logout);
+
+//reset password
+router.put('/password',authenticateUser,[body("oldPassword").trim().not().isEmpty(),
+                                         body("newPassword").trim().not().isEmpty()],
+                      userController.updatePassword);
 
 
 
-exports.registerUser=(req,res,next)=>{
-      
-    const ERRORS=validationResult(req);
-    if(!ERRORS.isEmpty()) return RESPONSE_OBJ.sendResponse(res,400,'error',ERRORS);
 
-    let userType=(req.body.userType).trim();
-    let name=(req.body.name).trim();
-    let phone=(req.body.phone).trim();
-    let password=(req.body.password).trim();
-    let committeeName=(req.body.committeeName).trim();
 
-    USER_MODEL.findOne
-}
+
+
+module.exports = router;
