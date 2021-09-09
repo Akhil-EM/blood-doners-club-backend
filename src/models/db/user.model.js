@@ -6,7 +6,7 @@ const userSchema=mongoose.Schema({name:{type:String,required:true},
                                    status:{type:String,required:true,enum: ["PENDING", "CONFIRMED"]},
                                    userType:{type:String,required:true,enum: ["ROLE_SUPER_ADMIN", "ROLE_ADMIN","ROLE_DONOR"]},
                                    locality:{type:String},///for normal users
-                                   areaCommittee:{type:String,required:true},//// for area committee
+                                   areaCommittee:{type:String},//// for area committee
                                    },{timestamps:true});
                         
 //generate password hash using bcrypt

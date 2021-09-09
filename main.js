@@ -100,6 +100,7 @@ app.get('/status',(req,res)=>{
   
 app.use('/user',require('./src/routers/user.router'));
 app.use('/location',require("./src/routers/location.router"));
+app.use("/donor",require("./src/routers/donor.router"));
 
 //no end points exist 
 app.all('*',(req,res)=>{

@@ -5,73 +5,126 @@ const jwt = require("jsonwebtoken");
 const userModel = require('../models/db/user.model');
 const locationModel = require('../models/db/location.model');
 const tokenModel = require('../models/db/token.model')
+const donorModel = require("../models/db/donor.model");
 
 const responseModel = require("../models/api/response.model")
 const statusCodes=require("../utils/response-code");
 
-//create user
-exports.register = (req,res)=>{
-     //check for validation errors from service center router 
+
+exports.registerAdmin =(req,res)=>{
+    //check for validation errors from service center router 
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(statusCodes.not_acceptable)
+                  .json(responseModel("failed","validation errors ",{errors: errors.array()}))
+    }
+    
+
+    let user={
+        name:req.body.name,
+        phone:req.body.phone,
+        password:req.body.password,
+        status:"CONFIRMED",
+        userType:"ROLE_ADMIN",
+        areaCommittee:"",
+        locality:req.body.locality}
+    
+    let user_model = new userModel(user);
+    
+    userModel.findOne({phone:req.body.phone})
+    .then((user)=>{
+        if(user) return res.status(statusCodes.not_acceptable)
+                           .json(responseModel("failed","phone number already exists"));
+          //save to user collection
+        user_model.save()
+                    .then((user)=>{
+                    // try to save to user detail collection 
+                        res.status(statusCodes.ok)
+                            .json(responseModel("success","new user registered"));
+                            
+                    })
+                    .catch((err)=>{
+                        console.log(err)
+                        res.status(statusCodes.internal_server_error)
+                        .json(responseModel("error",err+""));
+                    })
+            
+    })
+    .catch((err)=>{
+        res.status(statusCodes.internal_server_error)
+        .json(responseModel("error",err+""));
+    })
+
+}
+
+exports.registerDonor =(req,res) =>{
+    //check for validation errors from service center router 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(statusCodes.not_acceptable)
                   .json(responseModel("failed","validation errors",{errors: errors.array()}))
     }
 
-    let user;
-    let areaCommittee = req.body.areaCommittee;
-    let locality = req.body.locality;
-    //check which type of user is getting registered
-    if(areaCommittee){
-        user={
-            name:req.body.name,
-            phone:req.body.phone,
-            password:req.body.password,
-            status:"CONFIRMED",
-            userType:"ROLE_ADMIN",
-            areaCommittee:areaCommittee,
-            locality:""}  
-    }
-
-    if(locality){
-        user={
-            name:req.body.name,
-            phone:req.body.phone,
-            password:req.body.password,
-            status:"PENDING",
-            userType:"ROLE_DONOR",
-            areaCommittee:"",
-            locality:locality} 
-    }
+    let user={
+        name:req.body.name,
+        phone:req.body.phone,
+        password:req.body.password,
+        status:"PENDING",
+        userType:"ROLE_DONOR",
+        areaCommittee:"",
+        locality:req.body.locality} 
     
-    
-
     let user_model = new userModel(user);
-
-    userModel.findOne({phone:req.body.phone})
-              .then((user)=>{
-                  if(user) return res.status(statusCodes.not_acceptable)
-                                     .json(responseModel("failed","phone number already exists"));
     
-                    //save to user collection
-            user_model.save()
-                      .then((user)=>{
-                        // try to save to user detail collection 
-                            res.status(statusCodes.ok)
-                               .json(responseModel("success","new user registered"));
-                                
-                        })
-                        .catch((err)=>{
-                            res.status(statusCodes.internal_server_error)
-                            .json(responseModel("error",err+""));
-                        })
-                  
-              })
-              .catch((err)=>{
-                res.status(statusCodes.internal_server_error)
-                .json(responseModel("error",err+""));
-              })
-};
+    userModel.findOne({phone:req.body.phone})
+    .then((user)=>{
+        if(user) return res.status(statusCodes.not_acceptable)
+                           .json(responseModel("failed","phone number already exists"));
+          //save to user collection
+        user_model.save()
+                    .then((user)=>{
+                     let userId=user._id;
+                    //  console.log(userId)
+                     
+                     let donor = {
+                        userId:userId,
+                        name:req.body.name,
+                        place:req.body.locality,
+                        phone:req.body.phone,
+                        bloodGroup:req.body.bloodGroup
+                     }
+                    
+                     let donor_model = new donorModel(donor);
+                    //  save in donor model
+                     donor_model.save()
+                                .then(()=>{
+                                    res.status(statusCodes.ok)
+                                       .json(responseModel("success","new donor registered"));
+                                })
+                                .catch(err =>{
+                                    res.status(statusCodes.internal_server_error)
+                                       .json(responseModel("error",err+""));
+                                })
+
+                    // try to save to user detail collection 
+                        
+                            
+                    })
+                    .catch((err)=>{
+
+                        res.status(statusCodes.internal_server_error)
+                        .json(responseModel("error",err+""));
+                    })
+            
+    })
+    .catch((err)=>{
+        res.status(statusCodes.internal_server_error)
+        .json(responseModel("error s2",err+""));
+    })
+
+
+}
+
 
 exports.login = (req,res) =>{
     //validation 
